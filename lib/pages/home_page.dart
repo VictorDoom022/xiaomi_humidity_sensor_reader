@@ -19,8 +19,8 @@ class _HomePageState extends State<HomePage> {
   bool isBluetoothEnabled = false;
   bool isBluetoothScanning = false;
   List<ScanResult> scanResults = [];
-  BluetoothDevice? connectedDevice;
-  XiaomiSensorData? sensorData;
+  List<BluetoothDevice> connectedDevices = [];
+  List<XiaomiSensorData> sensorDataList = [];
 
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
   StreamSubscription<List<ScanResult>>? scannedBluetoothDevice;
@@ -115,12 +115,12 @@ class _HomePageState extends State<HomePage> {
     bluetoothConnectedDeviceState = device.connectionState.listen((BluetoothConnectionState connectionState) async {
       if(connectionState ==  BluetoothConnectionState.connected){
         setState(() {
-          connectedDevice = device;
+          connectedDevices.add(device);
         });
         await discoverDeviceServices();
       }else{
         setState(() {
-          connectedDevice = null;
+          connectedDevices.remove(device);
         });
       }
     });
@@ -134,27 +134,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> discoverDeviceServices() async {
-    List<BluetoothService>? bluetoothDeviceServices = await connectedDevice?.discoverServices();
-    BluetoothService? temperatureDataService = bluetoothDeviceServices?.firstWhereOrNull((BluetoothService service) {
-      return service.uuid.str.toLowerCase() == 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6'.toLowerCase();
-    });
-    if(temperatureDataService == null) {
-      print('No temperature data service available');
-      return;
-    }
+    connectedDevices.forEach((BluetoothDevice connectedDevice) async {
+      List<BluetoothService>? bluetoothDeviceServices = await connectedDevice.discoverServices();
 
-    BluetoothCharacteristic? tempDataCharacteristic = temperatureDataService.characteristics.firstWhereOrNull((BluetoothCharacteristic bluetoothCharacteristic) {
-      return bluetoothCharacteristic.uuid.str.toLowerCase() == 'ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6'.toLowerCase();
+      BluetoothService? temperatureDataService = bluetoothDeviceServices.firstWhereOrNull((BluetoothService service) {
+        return service.uuid.str.toLowerCase() == 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6'.toLowerCase();
+      });
+      if(temperatureDataService == null) {
+        print('No temperature data service available');
+        return;
+      }
+
+      BluetoothCharacteristic? tempDataCharacteristic = temperatureDataService.characteristics.firstWhereOrNull((BluetoothCharacteristic bluetoothCharacteristic) {
+        return bluetoothCharacteristic.uuid.str.toLowerCase() == 'ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6'.toLowerCase();
+      });
+      if(tempDataCharacteristic == null) {
+        print('No tempData characteristic available');
+        return;
+      }
+      List<int> data = await tempDataCharacteristic.read();
+      _processSensorData(connectedDevice.remoteId.str, data);
     });
-    if(tempDataCharacteristic == null) {
-      print('No tempData characteristic available');
-      return;
-    }
-    List<int> data = await tempDataCharacteristic.read();
-    _processSensorData(data);
   }
 
-  void _processSensorData(List<int> data) {
+  void _processSensorData(String deviceName, List<int> data) {
     try {
       ByteData byteData = Uint8List.fromList(data).buffer.asByteData();
       int temperature = byteData.getInt16(0, Endian.little);
@@ -170,9 +173,17 @@ class _HomePageState extends State<HomePage> {
         humidity: humidity,
         battery: battery,
         lastUpdateTime: DateFormat.jm().format(DateTime.now()),
+        sensorName: deviceName,
       );
       setState(() {
-        sensorData = result;
+        XiaomiSensorData? existingSensorData = sensorDataList.firstWhereOrNull(
+          (element) => element.sensorName == deviceName
+        );
+        if(existingSensorData != null) sensorDataList.remove(existingSensorData);
+
+        setState(() {
+          sensorDataList.add(result);
+        });
       });
     }catch(e) {
       print(e);
@@ -198,9 +209,11 @@ class _HomePageState extends State<HomePage> {
                 title: 'Is Bluetooth On:',
                 value: isBluetoothEnabled.toString()
               ),
-              connectedDevice != null ? _buildBluetoothStatusItem(
-                title: 'Connected Device',
-                value: '${connectedDevice?.advName}'
+              connectedDevices.isNotEmpty ? _buildBluetoothStatusItem(
+                title: 'Connected Device:',
+                value: connectedDevices.map(
+                  (element) => element.advName
+                ).toList().join(', ')
               ) : Container(),
               _buildActionItem(
                 title: 'Start Scan',
@@ -216,7 +229,7 @@ class _HomePageState extends State<HomePage> {
                  }
                 } : null
               ),
-              connectedDevice != null ? _buildActionItem(
+              connectedDevices.isNotEmpty ? _buildActionItem(
                 title: 'Read Data',
                 buttonTitle: 'Read',
                 onPressed: () async {
@@ -233,35 +246,51 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSensorData(){
-    if(sensorData == null) return Container();
+    if(sensorDataList.isEmpty) return Container();
 
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.thermostat),
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${sensorData?.temperature.toString() ?? '-'}\u2103',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700
+    return SizedBox(
+      height: 100,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: sensorDataList.length,
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, index) {
+            return SizedBox(
+              width: MediaQuery.of(context).size.width / 2.5,
+              child: Card(
+                child: ListTile(
+                  leading: const Icon(Icons.thermostat),
+                  title: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${sensorDataList[index].temperature.toString() ?? '-'}\u2103',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700
+                        ),
+                      ),
+                      Text(
+                        '${sensorDataList[index].humidity.toString() ?? '-'}%',
+                        style: const TextStyle(
+                          fontSize: 16
+                        ),
+                      )
+                    ],
+                  ),
+                  subtitle: Text(
+                    sensorDataList[index].lastUpdateTime ?? '-',
+                    style: const TextStyle(
+                      fontSize: 12
+                    ),
+                  ),
+                ),
               ),
-            ),
-            Text(
-              '${sensorData?.humidity.toString() ?? '-'}%',
-              style: const TextStyle(
-                fontSize: 16
-              ),
-            )
-          ],
-        ),
-        subtitle: Text(
-          sensorData?.lastUpdateTime ?? '-',
-          style: const TextStyle(
-            fontSize: 12
-          ),
+            );
+          }
         ),
       ),
     );
@@ -274,7 +303,9 @@ class _HomePageState extends State<HomePage> {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: scanResults.length,
         itemBuilder: (context, index) {
-          bool isCurrentConnectedDevice = connectedDevice?.remoteId.str == scanResults[index].device.remoteId.str;
+          bool isCurrentConnectedDevice = connectedDevices.firstWhereOrNull(
+            (element) => element.remoteId.str == scanResults[index].device.remoteId.str
+          ) != null;
           return ListTile(
             leading: Tooltip(
               message: 'Higher value is better',
@@ -327,7 +358,9 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           const SizedBox(width: 5),
-          Text(value ?? '')
+          Expanded(
+            child: Text(value ?? '')
+          )
         ],
       ),
     );
