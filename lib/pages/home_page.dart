@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:intl/intl.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   bool isBluetoothScanning = false;
   List<ScanResult> scanResults = [];
   BluetoothDevice? connectedDevice;
+  XiaomiSensorData? sensorData;
 
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
   StreamSubscription<List<ScanResult>>? scannedBluetoothDevice;
@@ -163,8 +165,15 @@ class _HomePageState extends State<HomePage> {
 
       int battery = ((voltDouble - 2.1).roundToDouble() * 100).toInt().clamp(0, 100);
 
-      XiaomiSensorData result = XiaomiSensorData(temperature: tempDouble, humidity: humidity, battery: battery);
-      print(result.toJson());
+      XiaomiSensorData result = XiaomiSensorData(
+        temperature: tempDouble,
+        humidity: humidity,
+        battery: battery,
+        lastUpdateTime: DateFormat.jm().format(DateTime.now()),
+      );
+      setState(() {
+        sensorData = result;
+      });
     }catch(e) {
       print(e);
     }
@@ -214,8 +223,44 @@ class _HomePageState extends State<HomePage> {
                   await discoverDeviceServices();
                 }
               ) : Container(),
+              _buildSensorData(),
               _buildScannedXiaomiDevices(),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSensorData(){
+    if(sensorData == null) return Container();
+
+    return Card(
+      child: ListTile(
+        leading: const Icon(Icons.thermostat),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '${sensorData?.temperature.toString() ?? '-'}\u2103',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700
+              ),
+            ),
+            Text(
+              '${sensorData?.humidity.toString() ?? '-'}%',
+              style: const TextStyle(
+                fontSize: 16
+              ),
+            )
+          ],
+        ),
+        subtitle: Text(
+          sensorData?.lastUpdateTime ?? '-',
+          style: const TextStyle(
+            fontSize: 12
           ),
         ),
       ),
