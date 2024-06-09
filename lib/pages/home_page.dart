@@ -16,9 +16,11 @@ class _HomePageState extends State<HomePage> {
   bool isBluetoothEnabled = false;
   bool isBluetoothScanning = false;
   List<ScanResult> scanResults = [];
+  BluetoothDevice? connectedDevice;
 
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
   StreamSubscription<List<ScanResult>>? scannedBluetoothDevice;
+  StreamSubscription<BluetoothConnectionState>? bluetoothConnectedDeviceState;
 
   @override
   void initState() {
@@ -33,6 +35,8 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     super.dispose();
     bluetoothStateSubscription?.cancel();
+    scannedBluetoothDevice?.cancel();
+    bluetoothConnectedDeviceState?.cancel();
   }
 
   Future<void> checkBluetoothSupported() async {
@@ -75,11 +79,11 @@ class _HomePageState extends State<HomePage> {
           List<ScanResult> filteredScanResult = result.where(
             (element) => element.advertisementData.advName != ''
           ).toList();
+          filteredScanResult.sort((a,b) => b.rssi.compareTo(a.rssi));
           scanResults = filteredScanResult;
         });
       },
       onDone: () {
-        print('stopped');
         setState(() {
           isBluetoothScanning = false;
         });
@@ -103,6 +107,38 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> connectToDevice(BluetoothDevice device) async {
     await device.connect();
+
+    bluetoothConnectedDeviceState = device.connectionState.listen((BluetoothConnectionState connectionState) async {
+      if(connectionState ==  BluetoothConnectionState.connected){
+        setState(() {
+          connectedDevice = device;
+        });
+        await discoverDeviceServices();
+      }else{
+        setState(() {
+          connectedDevice = null;
+        });
+      }
+    });
+
+    if(bluetoothConnectedDeviceState != null) {
+      device.cancelWhenDisconnected(bluetoothConnectedDeviceState!,
+        delayed: true,
+        next: true
+      );
+    }
+  }
+
+  Future<void> discoverDeviceServices() async {
+    List<BluetoothService>? bluetoothDeviceServices = await connectedDevice?.discoverServices();
+    bluetoothDeviceServices?.forEach((BluetoothService bluetoothService) {
+      bluetoothService.characteristics.forEach((BluetoothCharacteristic bluetoothCharacteristic) async {
+        if(bluetoothCharacteristic.properties.read){
+          List<int> data = await bluetoothCharacteristic.read();
+          print(data);
+        }
+      });
+    });
   }
 
   @override
@@ -124,6 +160,10 @@ class _HomePageState extends State<HomePage> {
                 title: 'Is Bluetooth On:',
                 value: isBluetoothEnabled.toString()
               ),
+              connectedDevice != null ? _buildBluetoothStatusItem(
+                title: 'Connected Device',
+                value: '${connectedDevice?.advName}'
+              ) : Container(),
               _buildActionItem(
                 title: 'Start Scan',
                 buttonTitle: isBluetoothScanning ? 'Scanning...' : 'Scan',
@@ -153,18 +193,37 @@ class _HomePageState extends State<HomePage> {
         physics: const NeverScrollableScrollPhysics(),
         itemCount: scanResults.length,
         itemBuilder: (context, index) {
+          bool isCurrentConnectedDevice = connectedDevice?.remoteId.str == scanResults[index].device.remoteId.str;
           return ListTile(
-            onTap: () async {
-              await connectToDevice(scanResults[index].device);
-            },
-            title: Text(
-              scanResults[index].advertisementData.advName
-            ),
-            trailing: Tooltip(
+            leading: Tooltip(
               message: 'Higher value is better',
               child: Text(
                 scanResults[index].rssi.toString()
               ),
+            ),
+            title: Text(
+              scanResults[index].advertisementData.advName,
+              style: TextStyle(
+                fontWeight: isCurrentConnectedDevice ? FontWeight.w700 : null,
+              ),
+            ),
+            subtitle: Text(
+              scanResults[index].device.remoteId.str,
+              style: const TextStyle(
+                fontSize: 10
+              ),
+            ),
+            trailing: TextButton(
+              child: Text(
+                isCurrentConnectedDevice ? 'Disconnect' : 'Connect',
+              ),
+              onPressed: () async {
+                if(isCurrentConnectedDevice){
+                  await scanResults[index].device.disconnect();
+                }else{
+                  await connectToDevice(scanResults[index].device);
+                }
+              },
             ),
           );
         },
