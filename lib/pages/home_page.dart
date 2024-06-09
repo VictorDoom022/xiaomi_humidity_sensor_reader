@@ -1,7 +1,9 @@
 import 'dart:async';
-
+import 'dart:typed_data';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -131,14 +133,41 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> discoverDeviceServices() async {
     List<BluetoothService>? bluetoothDeviceServices = await connectedDevice?.discoverServices();
-    bluetoothDeviceServices?.forEach((BluetoothService bluetoothService) {
-      bluetoothService.characteristics.forEach((BluetoothCharacteristic bluetoothCharacteristic) async {
-        if(bluetoothCharacteristic.properties.read){
-          List<int> data = await bluetoothCharacteristic.read();
-          print(data);
-        }
-      });
+    BluetoothService? temperatureDataService = bluetoothDeviceServices?.firstWhereOrNull((BluetoothService service) {
+      return service.uuid.str.toLowerCase() == 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6'.toLowerCase();
     });
+    if(temperatureDataService == null) {
+      print('No temperature data service available');
+      return;
+    }
+
+    BluetoothCharacteristic? tempDataCharacteristic = temperatureDataService.characteristics.firstWhereOrNull((BluetoothCharacteristic bluetoothCharacteristic) {
+      return bluetoothCharacteristic.uuid.str.toLowerCase() == 'ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6'.toLowerCase();
+    });
+    if(tempDataCharacteristic == null) {
+      print('No tempData characteristic available');
+      return;
+    }
+    List<int> data = await tempDataCharacteristic.read();
+    _processSensorData(data);
+  }
+
+  void _processSensorData(List<int> data) {
+    try {
+      ByteData byteData = Uint8List.fromList(data).buffer.asByteData();
+      int temperature = byteData.getInt16(0, Endian.little);
+      int humidity = byteData.getUint8(2);
+      int voltage = byteData.getInt16(3, Endian.little);
+      double tempDouble = temperature / 100;
+      double voltDouble = voltage / 1000;
+
+      int battery = ((voltDouble - 2.1).roundToDouble() * 100).toInt().clamp(0, 100);
+
+      XiaomiSensorData result = XiaomiSensorData(temperature: tempDouble, humidity: humidity, battery: battery);
+      print(result.toJson());
+    }catch(e) {
+      print(e);
+    }
   }
 
   @override
@@ -178,6 +207,13 @@ class _HomePageState extends State<HomePage> {
                  }
                 } : null
               ),
+              connectedDevice != null ? _buildActionItem(
+                title: 'Read Data',
+                buttonTitle: 'Read',
+                onPressed: () async {
+                  await discoverDeviceServices();
+                }
+              ) : Container(),
               _buildScannedXiaomiDevices(),
             ],
           ),
