@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   List<BluetoothDevice> connectedDevices = [];
   List<XiaomiSensorData> sensorDataList = [];
 
+  Timer? getSensorDataTimer;
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
   StreamSubscription<List<ScanResult>>? scannedBluetoothDevice;
   StreamSubscription<BluetoothConnectionState>? bluetoothConnectedDeviceState;
@@ -41,6 +42,7 @@ class _HomePageState extends State<HomePage> {
     bluetoothStateSubscription?.cancel();
     scannedBluetoothDevice?.cancel();
     bluetoothConnectedDeviceState?.cancel();
+    getSensorDataTimer?.cancel();
   }
 
   Future<void> checkBluetoothSupported() async {
@@ -124,6 +126,14 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
+
+    if(connectedDevices.isNotEmpty){
+      getSensorDataTimer = Timer.periodic(
+        const Duration(minutes: 5), (timer) async {
+          return await discoverDeviceServices();
+        }
+      );
+    }
 
     if(bluetoothConnectedDeviceState != null) {
       device.cancelWhenDisconnected(bluetoothConnectedDeviceState!,
