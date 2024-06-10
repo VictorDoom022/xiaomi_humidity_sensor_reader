@@ -167,7 +167,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _processSensorData(String deviceName, List<int> data) {
+  void _processSensorData(String deviceRemoteID, List<int> data) {
     try {
       ByteData byteData = Uint8List.fromList(data).buffer.asByteData();
       int temperature = byteData.getInt16(0, Endian.little);
@@ -183,11 +183,11 @@ class _HomePageState extends State<HomePage> {
         humidity: humidity,
         battery: battery,
         lastUpdateTime: DateFormat.jm().format(DateTime.now()),
-        sensorName: deviceName,
+        macAddress: deviceRemoteID,
       );
       setState(() {
         XiaomiSensorData? existingSensorData = sensorDataList.firstWhereOrNull(
-          (element) => element.sensorName == deviceName
+          (element) => element.sensorName == deviceRemoteID
         );
         if(existingSensorData != null) sensorDataList.remove(existingSensorData);
 

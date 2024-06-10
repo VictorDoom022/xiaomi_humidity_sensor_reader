@@ -1,9 +1,20 @@
+import 'package:isar/isar.dart';
+
+part 'xiaomi_sensor_data.g.dart';
+
+// flutter pub run build_runner build
+
+@collection
 class XiaomiSensorData {
-  final double? temperature;
-  final int? humidity;
-  final int? battery;
-  final String? lastUpdateTime;
-  final String? sensorName;
+
+  Id id = Isar.autoIncrement;
+
+  double? temperature;
+  int? humidity;
+  int? battery;
+  String? lastUpdateTime;
+  String? sensorName;
+  String? macAddress;
 
   XiaomiSensorData({
     this.temperature,
@@ -11,6 +22,7 @@ class XiaomiSensorData {
     this.battery,
     this.lastUpdateTime,
     this.sensorName,
+    this.macAddress,
   });
 
   Map<String, dynamic> toJson() {
@@ -20,6 +32,7 @@ class XiaomiSensorData {
     data['battery'] = this.battery;
     data['lastUpdateTime'] = this.lastUpdateTime;
     data['sensorName'] = this.sensorName;
+    data['macAddress'] = this.macAddress;
     return data;
   }
 
