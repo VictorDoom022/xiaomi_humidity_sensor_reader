@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:xiaomi_thermometer_ble/bloc/sensor_data_cubit.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
+import 'package:xiaomi_thermometer_ble/pages/sensor_detail_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,10 +30,13 @@ class _HomePageState extends State<HomePage> {
   StreamSubscription<List<ScanResult>>? scannedBluetoothDevice;
   StreamSubscription<BluetoothConnectionState>? bluetoothConnectedDeviceState;
 
+  late SensorDataCubit sensorDataCubit;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      sensorDataCubit = context.read<SensorDataCubit>();
       await checkBluetoothSupported();
       if(isBluetoothSupported) checkBluetoothState();
     });
@@ -128,8 +134,9 @@ class _HomePageState extends State<HomePage> {
     });
 
     if(connectedDevices.isNotEmpty){
+      print('timer set');
       getSensorDataTimer = Timer.periodic(
-        const Duration(minutes: 5), (timer) async {
+        const Duration(seconds: 10), (timer) async {
           return await discoverDeviceServices();
         }
       );
@@ -185,11 +192,18 @@ class _HomePageState extends State<HomePage> {
         lastUpdateTime: DateFormat.jm().format(DateTime.now()),
         macAddress: deviceRemoteID,
       );
+
+      sensorDataCubit.addSensorData(result);
+
       setState(() {
         XiaomiSensorData? existingSensorData = sensorDataList.firstWhereOrNull(
           (element) => element.sensorName == deviceRemoteID
         );
-        if(existingSensorData != null) sensorDataList.remove(existingSensorData);
+        if(existingSensorData != null) {
+          setState(() {
+            sensorDataList.remove(existingSensorData);
+          });
+        }
 
         setState(() {
           sensorDataList.add(result);
@@ -263,28 +277,38 @@ class _HomePageState extends State<HomePage> {
       child: Align(
         alignment: Alignment.centerLeft,
         child: ListView.builder(
-          shrinkWrap: true,
-          itemCount: sensorDataList.length,
           scrollDirection: Axis.horizontal,
+          itemCount: connectedDevices.length,
           itemBuilder: (context, index) {
+            XiaomiSensorData? latestSensorData = sensorDataCubit.getSensorDataByMacAddress(connectedDevices[index].remoteId.str);
             return SizedBox(
-              width: MediaQuery.of(context).size.width / 2.5,
+              width: 180,
               child: Card(
                 child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SensorDetailPage(
+                          sensorID: latestSensorData?.macAddress ?? '',
+                          sensorName: latestSensorData?.sensorName ?? ''
+                        )
+                      )
+                    );
+                  },
                   leading: const Icon(Icons.thermostat),
                   title: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${sensorDataList[index].temperature.toString() ?? '-'}\u2103',
+                        '${latestSensorData?.temperature.toString() ?? '-'}\u2103',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700
                         ),
                       ),
                       Text(
-                        '${sensorDataList[index].humidity.toString() ?? '-'}%',
+                        '${latestSensorData?.humidity.toString() ?? '-'}%',
                         style: const TextStyle(
                           fontSize: 16
                         ),
@@ -292,7 +316,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   subtitle: Text(
-                    sensorDataList[index].lastUpdateTime ?? '-',
+                    latestSensorData?.lastUpdateTime ?? '-',
                     style: const TextStyle(
                       fontSize: 12
                     ),
