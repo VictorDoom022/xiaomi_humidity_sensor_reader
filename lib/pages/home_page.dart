@@ -136,7 +136,7 @@ class _HomePageState extends State<HomePage> {
     if(connectedDevices.isNotEmpty){
       print('timer set');
       getSensorDataTimer = Timer.periodic(
-        const Duration(seconds: 10), (timer) async {
+        const Duration(minutes: 1), (timer) async {
           return await discoverDeviceServices();
         }
       );
@@ -284,6 +284,7 @@ class _HomePageState extends State<HomePage> {
             return SizedBox(
               width: 180,
               child: Card(
+                clipBehavior: Clip.hardEdge,
                 child: ListTile(
                   onTap: () {
                     Navigator.of(context).push(
