@@ -148,7 +148,14 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16)
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 5,
+            offset: const Offset(0, 2), // changes position of shadow
+          ),
+        ]
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

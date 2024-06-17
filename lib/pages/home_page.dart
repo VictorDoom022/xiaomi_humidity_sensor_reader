@@ -127,7 +127,14 @@ class _HomePageState extends State<HomePage> {
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16)
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 5,
+            offset: const Offset(0, 2), // changes position of shadow
+          ),
+        ]
       ),
       child: Row(
         children: [
@@ -293,7 +300,14 @@ class _HomePageState extends State<HomePage> {
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
             color: isSelected == true ? const Color(0xff11293d) : Colors.white,
-            borderRadius: BorderRadius.circular(20)
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                blurRadius: 5,
+                offset: const Offset(0, 2), // changes position of shadow
+              ),
+            ]
           ),
           child: Text(
             title,

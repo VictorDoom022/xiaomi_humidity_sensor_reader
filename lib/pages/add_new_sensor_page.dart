@@ -205,7 +205,14 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
       width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16)
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 5,
+            offset: const Offset(0, 2), // changes position of shadow
+          ),
+        ]
       ),
       child: Column(
         children: [
@@ -309,7 +316,14 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(8)
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.2),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2), // changes position of shadow
+                ),
+              ]
             ),
             child: Row(
               children: [
