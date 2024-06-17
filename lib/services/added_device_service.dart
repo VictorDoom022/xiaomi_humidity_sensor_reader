@@ -5,6 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
+import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 
 // Reference: https://medium.com/@murattaksimm/nosql-local-database-for-flutter-02b1d2a70be9
 class AddedDeviceService {
@@ -24,7 +25,7 @@ class AddedDeviceService {
 
     if(Isar.instanceNames.isEmpty){
       return await Isar.open(
-        [AddedDeviceDataSchema],
+        [AddedDeviceDataSchema, XiaomiSensorDataSchema],
         directory: applicationDir.path
       );
     }
@@ -39,6 +40,11 @@ class AddedDeviceService {
     );
   }
 
+  Future<AddedDeviceData?> getDeviceDetailByMacAddress(String macAddress) async {
+    final Isar isar = await isarDB;
+    return await isar.addedDeviceDatas.filter().deviceNameContains(macAddress).findFirst();
+  }
+
   Future<List<AddedDeviceData>> getAllAddedDeviceData() async {
     final Isar isar = await isarDB;
     return await isar.addedDeviceDatas.where().findAll();
@@ -47,5 +53,12 @@ class AddedDeviceService {
   Stream<List<AddedDeviceData>> listenAddedDeviceData() async* {
     final Isar isar = await isarDB;
     yield* isar.addedDeviceDatas.where().watch(fireImmediately: true);
+  }
+
+  Future<void> removeDevice(int id) async {
+    final Isar isar = await isarDB;
+    await isar.writeTxn(
+      () => isar.xiaomiSensorDatas.delete(id)
+    );
   }
 }

@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:collection/collection.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
+import 'package:xiaomi_thermometer_ble/pages/device_detail_page.dart';
+import 'package:xiaomi_thermometer_ble/services/sensor_data_service.dart';
 
 class HomePageThermometerDetail extends StatefulWidget {
 
@@ -32,6 +34,8 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
   Timer? checkSensorDataTimer;
   StreamSubscription<List<ScanResult>>? scanResultSubscription;
   StreamSubscription<BluetoothConnectionState>? bluetoothConnectedDeviceState;
+
+  SensorDataService sensorDataService = SensorDataService();
 
   @override
   void initState() {
@@ -112,10 +116,10 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
     List<int> data = await tempDataCharacteristic.read();
 
     if(currentBluetoothDevice == null) return;
-    _processSensorData(currentBluetoothDevice!.remoteId.str, data);
+    await _processSensorData(currentBluetoothDevice!.remoteId.str, data);
   }
 
-  void _processSensorData(String deviceRemoteID, List<int> data) {
+  Future<void> _processSensorData(String deviceRemoteID, List<int> data) async {
     try {
       ByteData byteData = Uint8List.fromList(data).buffer.asByteData();
       int temperature = byteData.getInt16(0, Endian.little);
@@ -137,6 +141,8 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
       setState(() {
         sensorData = result;
       });
+
+      await sensorDataService.addNewSensorData(result);
     }catch(e) {
       print(e);
     }
@@ -144,52 +150,63 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            blurRadius: 5,
-            offset: const Offset(0, 2), // changes position of shadow
-          ),
-        ]
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Icon(
-                    Icons.thermostat,
-                    size: 25,
-                    color: Colors.blueAccent,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DeviceDetailPage(
+              macAddress: widget.deviceData.deviceName!
+            )
+          )
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 5,
+              offset: const Offset(0, 2), // changes position of shadow
+            ),
+          ]
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Icon(
+                      Icons.thermostat,
+                      size: 25,
+                      color: Colors.blueAccent,
+                    ),
                   ),
                 ),
-              ),
-              Icon(
-                Icons.bluetooth_outlined,
-                size: 25,
-                color: Colors.black26,
-              )
-            ],
-          ),
-          const SizedBox(height: 20),
-          _buildTemperatureStatus(),
-          Text(
-            widget.deviceData.deviceName ?? '',
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.black54,
-              fontWeight: FontWeight.w600
+                Icon(
+                  Icons.bluetooth_outlined,
+                  size: 25,
+                  color: Colors.black26,
+                )
+              ],
             ),
-          ),
-        ],
+            const SizedBox(height: 20),
+            _buildTemperatureStatus(),
+            Text(
+              widget.deviceData.deviceName ?? '',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                fontWeight: FontWeight.w600
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

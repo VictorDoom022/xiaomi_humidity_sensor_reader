@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 
 class SensorDataService {
@@ -17,7 +18,7 @@ class SensorDataService {
 
     if(Isar.instanceNames.isEmpty){
       return await Isar.open(
-        [XiaomiSensorDataSchema],
+        [AddedDeviceDataSchema, XiaomiSensorDataSchema],
         directory: applicationDir.path
       );
     }
