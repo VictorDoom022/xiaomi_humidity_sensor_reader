@@ -164,7 +164,14 @@ class _HomePageState extends State<HomePage> {
                 color: Colors.green,
               ),
               onTap: () async {
-
+                if(isBluetoothEnabled){
+                  Navigator.of(context).pushNamed('/add-new-sensor');
+                }else{
+                  CherryToast.error(
+                    title: const Text('Bluetooth Required'),
+                    description: const Text('Please turn Bluetooth on'),
+                  ).show(context);
+                }
               }
             ),
           ),
