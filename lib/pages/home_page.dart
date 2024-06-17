@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
+import 'package:xiaomi_thermometer_ble/pages/widgets/home_page_thermometer_detail.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -331,52 +332,8 @@ class _HomePageState extends State<HomePage> {
         mainAxisSpacing: 8,
       ),
       itemBuilder: (context, index) {
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16)
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Row(
-                children: [
-                  Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Icon(
-                        Icons.thermostat,
-                        size: 25,
-                        color: Colors.blueAccent,
-                      ),
-                    ),
-                  ),
-                  Icon(
-                    Icons.bluetooth_outlined,
-                    size: 25,
-                    color: Colors.black26,
-                  )
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text(
-                addedDeviceList[index].deviceName ?? '',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700
-                ),
-              ),
-              const Text(
-                'Thermometer',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w600
-                ),
-              )
-            ],
-          ),
+        return HomePageThermometerDetail(
+          deviceData: addedDeviceList[index]
         );
       }
     );
