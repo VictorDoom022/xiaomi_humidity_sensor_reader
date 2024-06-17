@@ -270,7 +270,7 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
           shrinkWrap: true,
           itemCount: scanResults.length,
           physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 5,
+          crossAxisCount: 2,
           crossAxisSpacing: 5,
           mainAxisSpacing: 8,
           itemBuilder: (context, index) {
