@@ -14,7 +14,7 @@ class XiaomiSensorData {
   double? temperature;
   int? humidity;
   int? battery;
-  String? lastUpdateTime;
+  DateTime? lastUpdateTime;
   String? sensorName;
   String? macAddress;
 

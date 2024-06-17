@@ -191,7 +191,7 @@ class _TestPageState extends State<TestPage> {
         temperature: tempDouble,
         humidity: humidity,
         battery: battery,
-        lastUpdateTime: DateFormat.jm().format(DateTime.now()),
+        lastUpdateTime: DateTime.now(),
         macAddress: deviceRemoteID,
       );
 
@@ -319,7 +319,7 @@ class _TestPageState extends State<TestPage> {
                     ],
                   ),
                   subtitle: Text(
-                    latestSensorData?.lastUpdateTime ?? '-',
+                    DateFormat.jm().format(latestSensorData!.lastUpdateTime!),
                     style: const TextStyle(
                       fontSize: 12
                     ),

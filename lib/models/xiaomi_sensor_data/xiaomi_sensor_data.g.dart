@@ -30,7 +30,7 @@ const XiaomiSensorDataSchema = CollectionSchema(
     r'lastUpdateTime': PropertySchema(
       id: 2,
       name: r'lastUpdateTime',
-      type: IsarType.string,
+      type: IsarType.dateTime,
     ),
     r'macAddress': PropertySchema(
       id: 3,
@@ -69,12 +69,6 @@ int _xiaomiSensorDataEstimateSize(
 ) {
   var bytesCount = offsets.last;
   {
-    final value = object.lastUpdateTime;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
-  {
     final value = object.macAddress;
     if (value != null) {
       bytesCount += 3 + value.length * 3;
@@ -97,7 +91,7 @@ void _xiaomiSensorDataSerialize(
 ) {
   writer.writeLong(offsets[0], object.battery);
   writer.writeLong(offsets[1], object.humidity);
-  writer.writeString(offsets[2], object.lastUpdateTime);
+  writer.writeDateTime(offsets[2], object.lastUpdateTime);
   writer.writeString(offsets[3], object.macAddress);
   writer.writeString(offsets[4], object.sensorName);
   writer.writeDouble(offsets[5], object.temperature);
@@ -112,7 +106,7 @@ XiaomiSensorData _xiaomiSensorDataDeserialize(
   final object = XiaomiSensorData(
     battery: reader.readLongOrNull(offsets[0]),
     humidity: reader.readLongOrNull(offsets[1]),
-    lastUpdateTime: reader.readStringOrNull(offsets[2]),
+    lastUpdateTime: reader.readDateTimeOrNull(offsets[2]),
     macAddress: reader.readStringOrNull(offsets[3]),
     sensorName: reader.readStringOrNull(offsets[4]),
     temperature: reader.readDoubleOrNull(offsets[5]),
@@ -133,7 +127,7 @@ P _xiaomiSensorDataDeserializeProp<P>(
     case 1:
       return (reader.readLongOrNull(offset)) as P;
     case 2:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 3:
       return (reader.readStringOrNull(offset)) as P;
     case 4:
@@ -462,58 +456,49 @@ extension XiaomiSensorDataQueryFilter
   }
 
   QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+      lastUpdateTimeEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.equalTo(
         property: r'lastUpdateTime',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
       lastUpdateTimeGreaterThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         include: include,
         property: r'lastUpdateTime',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
       lastUpdateTimeLessThan(
-    String? value, {
+    DateTime? value, {
     bool include = false,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.lessThan(
         include: include,
         property: r'lastUpdateTime',
         value: value,
-        caseSensitive: caseSensitive,
       ));
     });
   }
 
   QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
       lastUpdateTimeBetween(
-    String? lower,
-    String? upper, {
+    DateTime? lower,
+    DateTime? upper, {
     bool includeLower = true,
     bool includeUpper = true,
-    bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.between(
@@ -522,77 +507,6 @@ extension XiaomiSensorDataQueryFilter
         includeLower: includeLower,
         upper: upper,
         includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'lastUpdateTime',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'lastUpdateTime',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'lastUpdateTime',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'lastUpdateTime',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'lastUpdateTime',
-        value: '',
-      ));
-    });
-  }
-
-  QueryBuilder<XiaomiSensorData, XiaomiSensorData, QAfterFilterCondition>
-      lastUpdateTimeIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'lastUpdateTime',
-        value: '',
       ));
     });
   }
@@ -1200,10 +1114,9 @@ extension XiaomiSensorDataQueryWhereDistinct
   }
 
   QueryBuilder<XiaomiSensorData, XiaomiSensorData, QDistinct>
-      distinctByLastUpdateTime({bool caseSensitive = true}) {
+      distinctByLastUpdateTime() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastUpdateTime',
-          caseSensitive: caseSensitive);
+      return query.addDistinctBy(r'lastUpdateTime');
     });
   }
 
@@ -1249,7 +1162,7 @@ extension XiaomiSensorDataQueryProperty
     });
   }
 
-  QueryBuilder<XiaomiSensorData, String?, QQueryOperations>
+  QueryBuilder<XiaomiSensorData, DateTime?, QQueryOperations>
       lastUpdateTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastUpdateTime');
@@ -1287,7 +1200,9 @@ XiaomiSensorData _$XiaomiSensorDataFromJson(Map<String, dynamic> json) =>
       temperature: (json['temperature'] as num?)?.toDouble(),
       humidity: (json['humidity'] as num?)?.toInt(),
       battery: (json['battery'] as num?)?.toInt(),
-      lastUpdateTime: json['lastUpdateTime'] as String?,
+      lastUpdateTime: json['lastUpdateTime'] == null
+          ? null
+          : DateTime.parse(json['lastUpdateTime'] as String),
       sensorName: json['sensorName'] as String?,
       macAddress: json['macAddress'] as String?,
     )..id = (json['id'] as num).toInt();
@@ -1298,7 +1213,7 @@ Map<String, dynamic> _$XiaomiSensorDataToJson(XiaomiSensorData instance) =>
       'temperature': instance.temperature,
       'humidity': instance.humidity,
       'battery': instance.battery,
-      'lastUpdateTime': instance.lastUpdateTime,
+      'lastUpdateTime': instance.lastUpdateTime?.toIso8601String(),
       'sensorName': instance.sensorName,
       'macAddress': instance.macAddress,
     };

@@ -130,7 +130,7 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
         temperature: tempDouble,
         humidity: humidity,
         battery: battery,
-        lastUpdateTime: DateFormat.jm().format(DateTime.now()),
+        lastUpdateTime: DateTime.now(),
         macAddress: deviceRemoteID,
       );
 

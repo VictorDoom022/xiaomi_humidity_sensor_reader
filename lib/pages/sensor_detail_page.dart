@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geekyants_flutter_gauges/geekyants_flutter_gauges.dart';
+import 'package:intl/intl.dart';
 import 'package:xiaomi_thermometer_ble/bloc/sensor_data_cubit.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 
@@ -89,7 +89,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
                     ),
                   ),
                   Text(
-                    sensorData.lastUpdateTime ?? 'Unknown',
+                    DateFormat.jm().format(sensorData.lastUpdateTime!),
                     style: const TextStyle(
                       fontSize: 8
                     ),
@@ -147,9 +147,9 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
                   ),
 
                   Text(
-                    sensorData.lastUpdateTime ?? 'Unknown',
+                    DateFormat.jm().format(sensorData.lastUpdateTime!),
                     style: const TextStyle(
-                        fontSize: 8
+                      fontSize: 8
                     ),
                   )
                 ],
@@ -196,7 +196,7 @@ class _SensorDetailPageState extends State<SensorDetailPage> {
           ],
         ),
         subtitle: Text(
-          sensorData.lastUpdateTime ?? '-'
+          DateFormat.jm().format(sensorData.lastUpdateTime!)
         ),
       ),
     );
