@@ -9,14 +9,14 @@ import 'package:xiaomi_thermometer_ble/bloc/sensor_data_cubit.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
 import 'package:xiaomi_thermometer_ble/pages/sensor_detail_page.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class TestPage extends StatefulWidget {
+  const TestPage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<TestPage> createState() => _TestPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _TestPageState extends State<TestPage> {
 
   bool isBluetoothSupported = false;
   bool isBluetoothEnabled = false;
