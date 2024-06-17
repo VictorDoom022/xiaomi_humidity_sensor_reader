@@ -29,6 +29,17 @@ void main() {
           scaffoldBackgroundColor: const Color(0xfff4f7fe),
           appBarTheme: const AppBarTheme(
             color: Color(0xfff4f7fe),
+          ),
+          bottomSheetTheme: const BottomSheetThemeData(
+            backgroundColor: Color(0xfff4f7fe)
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: Colors.black12,
+            border: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(10)
+            )
           )
         ),
       ),

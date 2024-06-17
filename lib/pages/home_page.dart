@@ -5,6 +5,7 @@ import 'package:cherry_toast/cherry_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
 
 class HomePage extends StatefulWidget {
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   bool isBluetoothEnabled = false;
   String selectedFilterCategory = 'All Devices';
 
-  AddedDeviceService addedDeviceCubit = AddedDeviceService();
+  AddedDeviceService addedDeviceService = AddedDeviceService();
 
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
 
@@ -72,6 +73,8 @@ class _HomePageState extends State<HomePage> {
               _buildControls(),
               const SizedBox(height: 5),
               _buildFilterSensorCategoryList(),
+              const SizedBox(height: 10),
+              _buildAddedDeviceStreamBuilder(),
             ],
           ),
         ),
@@ -223,6 +226,8 @@ class _HomePageState extends State<HomePage> {
                   width: double.infinity,
                   child: Text(
                     title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.black54,
@@ -294,6 +299,86 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAddedDeviceStreamBuilder() {
+    return StreamBuilder<List<AddedDeviceData>>(
+      stream: addedDeviceService.listenAddedDeviceData(),
+      builder: (context, snapshot) {
+        if(snapshot.hasError){
+          return const Center(child: Text('An Error Occurred'));
+        }
+
+        if(snapshot.data == null){
+          return const Center(child: Text('No device added'));
+        }
+
+        return _buildAddedDeviceGridView(snapshot.data!);
+      }
+    );
+  }
+
+  Widget _buildAddedDeviceGridView(List<AddedDeviceData> addedDeviceList) {
+    return GridView.builder(
+      shrinkWrap: true,
+      itemCount: addedDeviceList.length,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width > 360 ? 2 : 1,
+        childAspectRatio: 1.7,
+        crossAxisSpacing: 5,
+        mainAxisSpacing: 8,
+      ),
+      itemBuilder: (context, index) {
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16)
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Icon(
+                        Icons.thermostat,
+                        size: 25,
+                        color: Colors.blueAccent,
+                      ),
+                    ),
+                  ),
+                  Icon(
+                    Icons.bluetooth_outlined,
+                    size: 25,
+                    color: Colors.black26,
+                  )
+                ],
+              ),
+              const SizedBox(height: 20),
+              Text(
+                addedDeviceList[index].deviceName ?? '',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700
+                ),
+              ),
+              const Text(
+                'Thermometer',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.black54,
+                  fontWeight: FontWeight.w600
+                ),
+              )
+            ],
+          ),
+        );
+      }
     );
   }
 }

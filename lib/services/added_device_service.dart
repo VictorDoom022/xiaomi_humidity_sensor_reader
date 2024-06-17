@@ -37,4 +37,9 @@ class AddedDeviceService {
       () => isar.addedDeviceDatas.putSync(deviceData)
     );
   }
+
+  Stream<List<AddedDeviceData>> listenAddedDeviceData() async* {
+    final Isar isar = await isarDB;
+    yield* isar.addedDeviceDatas.where().watch(fireImmediately: true);
+  }
 }
