@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
+import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 import 'package:collection/collection.dart';
 
 class SensorDataCubit extends Cubit<List<XiaomiSensorData>> {

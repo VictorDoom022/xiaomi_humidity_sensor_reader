@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geekyants_flutter_gauges/geekyants_flutter_gauges.dart';
 import 'package:xiaomi_thermometer_ble/bloc/sensor_data_cubit.dart';
-import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
+import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 
 class SensorDetailPage extends StatefulWidget {
 

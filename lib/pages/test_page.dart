@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:xiaomi_thermometer_ble/bloc/sensor_data_cubit.dart';
-import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data.dart';
+import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 import 'package:xiaomi_thermometer_ble/pages/sensor_detail_page.dart';
 
 class TestPage extends StatefulWidget {
