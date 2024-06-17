@@ -1,9 +1,11 @@
 import 'package:isar/isar.dart';
+import 'package:json_annotation/json_annotation.dart';
 
 part 'xiaomi_sensor_data.g.dart';
 
 // flutter pub run build_runner build
 
+@JsonSerializable()
 @collection
 class XiaomiSensorData {
 
@@ -25,16 +27,9 @@ class XiaomiSensorData {
     this.macAddress,
   });
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['temperature'] = this.temperature;
-    data['humidity'] = this.humidity;
-    data['battery'] = this.battery;
-    data['lastUpdateTime'] = this.lastUpdateTime;
-    data['sensorName'] = this.sensorName;
-    data['macAddress'] = this.macAddress;
-    return data;
-  }
+  factory XiaomiSensorData.fromJson(Map<String, dynamic> json) => _$XiaomiSensorDataFromJson(json);
+
+  Map<String, dynamic> toJson() => _$XiaomiSensorDataToJson(this);
 
 }
 

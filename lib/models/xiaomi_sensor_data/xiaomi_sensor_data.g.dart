@@ -1277,3 +1277,28 @@ extension XiaomiSensorDataQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+XiaomiSensorData _$XiaomiSensorDataFromJson(Map<String, dynamic> json) =>
+    XiaomiSensorData(
+      temperature: (json['temperature'] as num?)?.toDouble(),
+      humidity: (json['humidity'] as num?)?.toInt(),
+      battery: (json['battery'] as num?)?.toInt(),
+      lastUpdateTime: json['lastUpdateTime'] as String?,
+      sensorName: json['sensorName'] as String?,
+      macAddress: json['macAddress'] as String?,
+    )..id = (json['id'] as num).toInt();
+
+Map<String, dynamic> _$XiaomiSensorDataToJson(XiaomiSensorData instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'temperature': instance.temperature,
+      'humidity': instance.humidity,
+      'battery': instance.battery,
+      'lastUpdateTime': instance.lastUpdateTime,
+      'sensorName': instance.sensorName,
+      'macAddress': instance.macAddress,
+    };

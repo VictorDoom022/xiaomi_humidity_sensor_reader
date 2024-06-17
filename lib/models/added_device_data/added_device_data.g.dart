@@ -808,3 +808,24 @@ extension AddedDeviceDataQueryProperty
     });
   }
 }
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+AddedDeviceData _$AddedDeviceDataFromJson(Map<String, dynamic> json) =>
+    AddedDeviceData(
+      deviceName: json['deviceName'] as String?,
+      deviceMacAddress: json['deviceMacAddress'] as String?,
+      timeAdded: json['timeAdded'] == null
+          ? null
+          : DateTime.parse(json['timeAdded'] as String),
+    )..id = (json['id'] as num).toInt();
+
+Map<String, dynamic> _$AddedDeviceDataToJson(AddedDeviceData instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'deviceName': instance.deviceName,
+      'deviceMacAddress': instance.deviceMacAddress,
+      'timeAdded': instance.timeAdded?.toIso8601String(),
+    };
