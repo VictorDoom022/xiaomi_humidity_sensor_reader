@@ -94,59 +94,63 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
   Future<void> connectBluetoothDevice(BluetoothDevice device) async {
     await showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) {
-        return Form(
-          key: formKey,
-          child: SizedBox(
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Give your new device a name',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 20
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: Form(
+            key: formKey,
+            child: SizedBox(
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Give your new device a name',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 20
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  TextFormField(
-                    controller: deviceNameTextEditingController,
-                    validator: (value) {
-                      if(value == null || value == ''){
-                        return 'Device name cannot be empty';
-                      }
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: deviceNameTextEditingController,
+                      validator: (value) {
+                        if(value == null || value == ''){
+                          return 'Device name cannot be empty';
+                        }
 
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 40,
-                    child: TextButton(
-                      style: const ButtonStyle(
-                        backgroundColor: WidgetStatePropertyAll(
-                          Color(0xff11293d)
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 40,
+                      child: TextButton(
+                        style: const ButtonStyle(
+                          backgroundColor: WidgetStatePropertyAll(
+                            Color(0xff11293d)
+                          )
+                        ),
+                        onPressed: () async {
+                          if(formKey.currentState?.validate() != true) return;
+                          await addNewDeviceToIsar(device);
+                          if(!mounted) return;
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text(
+                          'Add',
+                          style: TextStyle(
+                            color: Colors.white,
+                          ),
                         )
                       ),
-                      onPressed: () async {
-                        if(formKey.currentState?.validate() != true) return;
-                        await addNewDeviceToIsar(device);
-                        if(!mounted) return;
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text(
-                        'Add',
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      )
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),
