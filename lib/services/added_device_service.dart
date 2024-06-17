@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 
+// Reference: https://medium.com/@murattaksimm/nosql-local-database-for-flutter-02b1d2a70be9
 class AddedDeviceService {
 
   late Future<Isar> isarDB;
@@ -36,6 +37,11 @@ class AddedDeviceService {
     isar.writeTxnSync(
       () => isar.addedDeviceDatas.putSync(deviceData)
     );
+  }
+
+  Future<List<AddedDeviceData>> getAllAddedDeviceData() async {
+    final Isar isar = await isarDB;
+    return await isar.addedDeviceDatas.where().findAll();
   }
 
   Stream<List<AddedDeviceData>> listenAddedDeviceData() async* {

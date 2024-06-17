@@ -6,6 +6,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
+import 'package:collection/collection.dart';
 
 class AddNewSensorPage extends StatefulWidget {
   const AddNewSensorPage({super.key});
@@ -24,6 +25,7 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
   TextEditingController deviceNameTextEditingController = TextEditingController();
 
   List<ScanResult> scanResults = [];
+  List<AddedDeviceData> addedDeviceList = [];
 
   StreamSubscription<List<ScanResult>>? scanBluetoothDeviceSubscription;
 
@@ -31,6 +33,7 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await getAddedDeviceList();
       await scanForBluetoothDevice();
     });
   }
@@ -40,6 +43,13 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
     super.dispose();
     FlutterBluePlus.stopScan();
     scanBluetoothDeviceSubscription?.cancel();
+  }
+
+  Future<void> getAddedDeviceList() async {
+    List<AddedDeviceData> dataFromDB = await addedDeviceService.getAllAddedDeviceData();
+    setState(() {
+      addedDeviceList = dataFromDB;
+    });
   }
 
   Future<void> scanForBluetoothDevice() async {
@@ -288,60 +298,79 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
     int? rssi,
     VoidCallback? onTap,
   }) {
+    bool isDeviceAlreadyConnected = checkDeviceAlreadyAdded(device);
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(8)
-        ),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 50,
-              child: device.advName == 'LYWSD03MMC' ? Image.asset(
-                'assets/images/xiaomi-sensor-image.png',
-                width: 50,
-              ) : const Icon(
-                Icons.device_unknown,
-                size: 30,
-                color: Colors.blueAccent,
+      onTap: !isDeviceAlreadyConnected ? onTap : null,
+      child: Stack(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8)
+            ),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 50,
+                  child: device.advName == 'LYWSD03MMC' ? Image.asset(
+                    'assets/images/xiaomi-sensor-image.png',
+                    width: 50,
+                  ) : const Icon(
+                    Icons.device_unknown,
+                    size: 30,
+                    color: Colors.blueAccent,
+                  ),
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          device.advName,
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          'Range: $rssi',
+                          maxLines: 1,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.black54
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          isDeviceAlreadyConnected ? Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black54.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(8)
               ),
             ),
-            const SizedBox(width: 5),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      device.advName,
-                      maxLines: 1,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      'Range: $rssi',
-                      maxLines: 1,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.black54
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
-        ),
+          ) : Container(),
+        ],
       ),
     );
+  }
+
+  bool checkDeviceAlreadyAdded(BluetoothDevice device){
+    return addedDeviceList.firstWhereOrNull((element) {
+      return element.deviceMacAddress == device.remoteId.str;
+    }) == null ? false : true;
   }
 }
