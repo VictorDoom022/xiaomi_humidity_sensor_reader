@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cherry_toast/cherry_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
@@ -265,16 +266,13 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
         const Text(
           'Scanned Device(s)'
         ),
-        GridView.builder(
+        AlignedGridView.count(
           shrinkWrap: true,
           itemCount: scanResults.length,
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: MediaQuery.of(context).size.width > 360 ? 2 : 1,
-            childAspectRatio: 2.8,
-            crossAxisSpacing: 5,
-            mainAxisSpacing: 8,
-          ),
+          crossAxisCount: 5,
+          crossAxisSpacing: 5,
+          mainAxisSpacing: 8,
           itemBuilder: (context, index) {
             return _buildScannedDeviceItem(
               rssi: scanResults[index].rssi,

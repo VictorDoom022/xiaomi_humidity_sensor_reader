@@ -5,6 +5,7 @@ import 'package:cherry_toast/cherry_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/pages/widgets/home_page_thermometer_detail.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
@@ -69,6 +70,9 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              SizedBox(
+                height: AppBar().preferredSize.height
+              ),
               _buildAppHeader(),
               const SizedBox(height: 5),
               _buildControls(),
@@ -321,16 +325,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildAddedDeviceGridView(List<AddedDeviceData> addedDeviceList) {
-    return GridView.builder(
+    return AlignedGridView.count(
       shrinkWrap: true,
       itemCount: addedDeviceList.length,
+      crossAxisCount: 2,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 5,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: MediaQuery.of(context).size.width > 360 ? 2 : 1,
-        childAspectRatio: 1.7,
-        crossAxisSpacing: 5,
-        mainAxisSpacing: 8,
-      ),
       itemBuilder: (context, index) {
         return HomePageThermometerDetail(
           deviceData: addedDeviceList[index]
