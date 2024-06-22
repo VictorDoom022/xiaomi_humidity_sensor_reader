@@ -42,7 +42,7 @@ class AddedDeviceService {
 
   Future<AddedDeviceData?> getDeviceDetailByMacAddress(String macAddress) async {
     final Isar isar = await isarDB;
-    return await isar.addedDeviceDatas.filter().deviceNameContains(macAddress).findFirst();
+    return await isar.addedDeviceDatas.filter().deviceMacAddressEqualTo(macAddress).findFirst();
   }
 
   Future<List<AddedDeviceData>> getAllAddedDeviceData() async {

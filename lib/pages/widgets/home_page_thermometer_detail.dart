@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:intl/intl.dart';
+import 'package:xiaomi_thermometer_ble/bloc/connected_device_cubit.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:collection/collection.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
@@ -37,10 +39,13 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
 
   SensorDataService sensorDataService = SensorDataService();
 
+  late ConnectedDeviceCubit connectedDeviceCubit;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      connectedDeviceCubit = context.read<ConnectedDeviceCubit>();
       await scanForDevice();
     });
   }
@@ -81,7 +86,7 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
 
     bluetoothConnectedDeviceState = currentBluetoothDevice?.connectionState.listen((BluetoothConnectionState connectionState) async {
       if(connectionState == BluetoothConnectionState.connected){
-        print('Device connected');
+        if(currentBluetoothDevice != null) connectedDeviceCubit.addConnectedDevice(currentBluetoothDevice!);
         setState(() {
           isDeviceConnected = true;
         });
@@ -91,6 +96,8 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
           const Duration(seconds: 30), (timer) async {
             await discoverDeviceServices();
         });
+      }else{
+        if(currentBluetoothDevice != null) connectedDeviceCubit.removeConnectedDevice(currentBluetoothDevice!);
       }
     });
   }
@@ -155,7 +162,7 @@ class _HomePageThermometerDetailState extends State<HomePageThermometerDetail> {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => DeviceDetailPage(
-              macAddress: widget.deviceData.deviceName!
+              macAddress: widget.deviceData.deviceMacAddress!
             )
           )
         );

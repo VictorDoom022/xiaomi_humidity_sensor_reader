@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:cupertino_battery_indicator/cupertino_battery_indicator.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:geekyants_flutter_gauges/geekyants_flutter_gauges.dart';
 import 'package:intl/intl.dart';
+import 'package:xiaomi_thermometer_ble/bloc/connected_device_cubit.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
@@ -32,6 +36,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   XiaomiSensorData? latestSensorData;
   StreamSubscription<List<XiaomiSensorData>>? sensorDataStream;
 
+  bool isDeviceConnected = false;
+  late ConnectedDeviceCubit connectedDeviceCubit;
+  List<String> dropdownButtonSelectionList = ['Connect'];
+
   BoxDecoration headerContainerBoxDecoration = BoxDecoration(
     color: Colors.white,
     borderRadius: BorderRadius.circular(16),
@@ -49,8 +57,10 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      connectedDeviceCubit = context.read<ConnectedDeviceCubit>();
       await getCurrentDeviceDetail();
       await getLatestSensorData();
+      checkIsDeviceConnected();
     });
   }
 
@@ -77,19 +87,61 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
     });
   }
 
+  void checkIsDeviceConnected() {
+    if(connectedDeviceCubit.state.firstWhereOrNull(
+      (element) => element.remoteId.str == widget.macAddress) != null
+    ){
+      setState(() {
+        isDeviceConnected = true;
+      });
+    }else{
+      setState(() {
+        isDeviceConnected = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text(
-          deviceData?.deviceName ?? 'Unknown Device'
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              deviceData?.deviceName ?? 'Unknown Device',
+            ),
+            Text(
+              isDeviceConnected ? 'Connected' : 'Disconnected',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black45,
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          ],
         ),
         actions: [
-          TextButton(
-            child: const Icon(Icons.more_vert),
-            onPressed: () {},
-          )
+          // PopupMenuButton(
+          //   enableFeedback: true,
+          //   offset: const Offset(0, 40),
+          //   color: Colors.white,
+          //   icon: const Icon(Icons.more_vert),
+          //   shape: RoundedRectangleBorder(
+          //     borderRadius: BorderRadius.circular(8)
+          //   ),
+          //   itemBuilder: (context) {
+          //     return dropdownButtonSelectionList.map((e) {
+          //       return PopupMenuItem(
+          //         child: Text(e),
+          //         onTap: () {
+          //           // FlutterBluePlus.c
+          //         },
+          //       );
+          //     }).toList();
+          //   },
+          // ),
         ],
       ),
       body: SingleChildScrollView(

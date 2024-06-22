@@ -6,6 +6,8 @@ import 'package:xiaomi_thermometer_ble/pages/add_new_sensor_page.dart';
 import 'package:xiaomi_thermometer_ble/pages/home_page.dart';
 import 'package:xiaomi_thermometer_ble/pages/test_page.dart';
 
+import 'bloc/connected_device_cubit.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -14,6 +16,9 @@ void main() {
       providers: [
         BlocProvider<SensorDataCubit>(
           create: (BuildContext context) => SensorDataCubit(),
+        ),
+        BlocProvider<ConnectedDeviceCubit>(
+          create: (BuildContext context) => ConnectedDeviceCubit(),
         )
       ],
       child: MaterialApp(
