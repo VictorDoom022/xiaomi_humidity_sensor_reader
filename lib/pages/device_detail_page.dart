@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cupertino_battery_indicator/cupertino_battery_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:geekyants_flutter_gauges/geekyants_flutter_gauges.dart';
 import 'package:intl/intl.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
@@ -68,7 +69,6 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }
 
   Future<void> getLatestSensorData() async {
-    print('test');
     if(deviceData?.deviceMacAddress == null) return;
     sensorDataStream = sensorDataService.listenSensorDataByMacAddress(deviceData!.deviceMacAddress!).listen((sensorDataList) {
       setState(() {
@@ -106,110 +106,130 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }
 
   Widget _buildHeaderSection() {
-    return SizedBox(
-      height: MediaQuery.of(context).size.height / 2,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              decoration: headerContainerBoxDecoration,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  const Text(
-                    'Battery',
-                    style: TextStyle(
-                      fontSize: 14
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  RotatedBox(
-                    quarterTurns: 3,
-                    child: BatteryIndicator(
-                      value: latestSensorData?.battery?.toDouble() ?? 0,
-                      trackHeight: 50,
-                      barColor: Color(0xff5BC236),
-                      icon: RotatedBox(
-                        quarterTurns: 1,
-                        child: Text(
-                          '${latestSensorData?.battery ?? 0}%',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    ),
-                  )
-                ],
+    return StaggeredGrid.count(
+      crossAxisCount: 2,
+      crossAxisSpacing: 10,
+      mainAxisSpacing: 10,
+      children: [
+        StaggeredGridTile.count(
+          crossAxisCellCount: 1,
+          mainAxisCellCount: 2,
+          child: _buildBatteryAndOtherInfo(),
+        ),
+        StaggeredGridTile.count(
+          crossAxisCellCount: 1,
+          mainAxisCellCount: 1,
+          child: latestSensorData != null ? _buildTemperatureGauge(latestSensorData!) : Container(),
+        ),
+        StaggeredGridTile.count(
+          crossAxisCellCount: 1,
+          mainAxisCellCount: 1,
+          child: latestSensorData != null ? _buildHumidityGauge(latestSensorData!) : Container(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBatteryAndOtherInfo() {
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      padding: const EdgeInsets.all(16),
+      decoration: headerContainerBoxDecoration,
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Battery',
+              style: TextStyle(
+                fontSize: 14
               ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: headerContainerBoxDecoration,
-                    child: Column(
-                      children: [
-                        latestSensorData != null ? _buildTemperatureGauge(latestSensorData!) : Container()
-                      ],
+            const SizedBox(height: 15),
+            RotatedBox(
+              quarterTurns: 3,
+              child: BatteryIndicator(
+                value: latestSensorData?.battery?.toDouble() ?? 0,
+                trackHeight: 50,
+                barColor: const Color(0xff5BC236),
+                icon: RotatedBox(
+                  quarterTurns: 1,
+                  child: Text(
+                    '${latestSensorData?.battery ?? 0}%',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: headerContainerBoxDecoration,
-                    child: Column(
-                      children: [
-                        latestSensorData != null ? _buildHumidityGauge(latestSensorData!) : Container()
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+                )
+              ),
             ),
-          )
-        ],
+            const SizedBox(height: 15),
+            const Text(
+              'Last Updated',
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.black45,
+                fontWeight: FontWeight.w600
+              ),
+            ),
+            Text(
+              latestSensorData?.lastUpdateTime != null ? DateFormat('hh:mm a \n dd/MM/yyyy').format(latestSensorData!.lastUpdateTime!) : 'Unknown',
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black45,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildTemperatureGauge(XiaomiSensorData sensorData){
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  sensorData.temperature.toString(),
-                  style: const TextStyle(
-                    fontSize: 28,
+    return Container(
+      padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.hardEdge,
+      decoration: headerContainerBoxDecoration,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      sensorData.temperature.toString(),
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 28,
+                      ),
+                    ),
                   ),
-                ),
-                const Text(
-                  'Celsius',
-                  style: TextStyle(
-                    fontSize: 14
+                  const SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Celsius',
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-        SizedBox(
-          height: 150,
-          child: RadialGauge(
+          MediaQuery.of(context).size.width > 320 ? RadialGauge(
             track: const RadialTrack(
               start: 0,
               end: 50,
@@ -225,54 +245,63 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 value: latestSensorData?.temperature ?? 0,
               )
             ],
-          ),
-        ),
-      ],
+          ) : Container(),
+        ],
+      ),
     );
   }
 
   Widget _buildHumidityGauge(XiaomiSensorData sensorData){
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      sensorData.humidity.toString(),
-                      style: const TextStyle(
-                        fontSize: 28,
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(bottom: 5),
-                      child: Text(
-                        '%',
-                        style: TextStyle(
-                          fontSize: 14
+    return Container(
+      padding: const EdgeInsets.all(16),
+      clipBehavior: Clip.hardEdge,
+      decoration: headerContainerBoxDecoration,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        sensorData.humidity.toString(),
+                        maxLines: 1,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 28,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const Text(
-                  'Humidity',
-                  style: TextStyle(
-                    fontSize: 14
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: Text(
+                          '%',
+                          style: TextStyle(
+                            fontSize: 14
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                )
-              ],
+                  const SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      'Humidity',
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14
+                      ),
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
-        ),
-        SizedBox(
-          height: 150,
-          child: RadialGauge(
+          MediaQuery.of(context).size.width > 320 ? RadialGauge(
             track: const RadialTrack(
               start: 0,
               end: 100,
@@ -288,9 +317,9 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
                 value: latestSensorData?.humidity?.toDouble() ?? 0,
               )
             ],
-          ),
-        )
-      ],
+          ) : Container()
+        ],
+      ),
     );
   }
 
