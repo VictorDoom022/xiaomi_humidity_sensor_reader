@@ -36,7 +36,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   XiaomiSensorData? latestSensorData;
   StreamSubscription<List<XiaomiSensorData>>? sensorDataStream;
 
-  bool isDeviceConnected = false;
+  BluetoothDevice? currentConnectedBluetoothDevice;
   late ConnectedDeviceCubit connectedDeviceCubit;
   List<String> dropdownButtonSelectionList = ['Connect'];
 
@@ -88,16 +88,28 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }
 
   void checkIsDeviceConnected() {
-    if(connectedDeviceCubit.state.firstWhereOrNull(
-      (element) => element.remoteId.str == widget.macAddress) != null
-    ){
-      setState(() {
-        isDeviceConnected = true;
-      });
+    BluetoothDevice? currentDeviceSearch = connectedDeviceCubit.state.firstWhereOrNull(
+      (element) => element.remoteId.str == widget.macAddress
+    );
+    setState(() {
+      currentConnectedBluetoothDevice = currentDeviceSearch;
+    });
+  }
+
+  void onDropdownMenuSelect(int index) async {
+    switch (index) {
+      case 0:
+        await connectOrDisconnectBluetoothDevice();
+        break;
+    }
+  }
+
+  Future<void> connectOrDisconnectBluetoothDevice() async {
+    if(currentConnectedBluetoothDevice != null){
+      await currentConnectedBluetoothDevice?.disconnect();
+      return;
     }else{
-      setState(() {
-        isDeviceConnected = false;
-      });
+      await currentConnectedBluetoothDevice?.disconnect();
     }
   }
 
@@ -113,7 +125,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
               deviceData?.deviceName ?? 'Unknown Device',
             ),
             Text(
-              isDeviceConnected ? 'Connected' : 'Disconnected',
+              currentConnectedBluetoothDevice != null ? 'Connected' : 'Disconnected',
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.black45,
@@ -123,25 +135,25 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
           ],
         ),
         actions: [
-          // PopupMenuButton(
-          //   enableFeedback: true,
-          //   offset: const Offset(0, 40),
-          //   color: Colors.white,
-          //   icon: const Icon(Icons.more_vert),
-          //   shape: RoundedRectangleBorder(
-          //     borderRadius: BorderRadius.circular(8)
-          //   ),
-          //   itemBuilder: (context) {
-          //     return dropdownButtonSelectionList.map((e) {
-          //       return PopupMenuItem(
-          //         child: Text(e),
-          //         onTap: () {
-          //           // FlutterBluePlus.c
-          //         },
-          //       );
-          //     }).toList();
-          //   },
-          // ),
+          PopupMenuButton(
+            enableFeedback: true,
+            offset: const Offset(0, 40),
+            color: Colors.white,
+            icon: const Icon(Icons.more_vert),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8)
+            ),
+            itemBuilder: (context) {
+              return dropdownButtonSelectionList.map((e) {
+                return PopupMenuItem(
+                  child: Text(e),
+                  onTap: () {
+                    onDropdownMenuSelect(dropdownButtonSelectionList.indexOf(e));
+                  },
+                );
+              }).toList();
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
