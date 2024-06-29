@@ -64,23 +64,26 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              SizedBox(
-                height: AppBar().preferredSize.height
-              ),
-              _buildAppHeader(),
-              const SizedBox(height: 5),
-              _buildControls(),
-              const SizedBox(height: 5),
-              _buildFilterSensorCategoryList(),
-              const SizedBox(height: 10),
-              _buildAddedDeviceStreamBuilder(),
-            ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: AppBar().preferredSize.height
+                ),
+                _buildAppHeader(),
+                const SizedBox(height: 5),
+                _buildControls(),
+                const SizedBox(height: 5),
+                _buildFilterSensorCategoryList(),
+                const SizedBox(height: 10),
+                _buildAddedDeviceStreamBuilder(),
+              ],
+            ),
           ),
         ),
       ),

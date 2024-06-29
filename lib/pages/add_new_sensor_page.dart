@@ -117,6 +117,7 @@ class _AddNewSensorPageState extends State<AddNewSensorPage> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      textAlign: TextAlign.center,
                       controller: deviceNameTextEditingController,
                       validator: (value) {
                         if(value == null || value == ''){
