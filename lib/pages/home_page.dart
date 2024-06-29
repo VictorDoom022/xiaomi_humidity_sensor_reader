@@ -329,7 +329,7 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: Text('An Error Occurred'));
         }
 
-        if(snapshot.data == null){
+        if(snapshot.data == null || snapshot.data?.isEmpty == true){
           return const Center(child: Text('No device added'));
         }
 
