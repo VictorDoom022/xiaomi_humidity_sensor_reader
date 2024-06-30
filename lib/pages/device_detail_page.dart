@@ -88,7 +88,7 @@ class _DeviceDetailPageState extends State<DeviceDetailPage> {
   }
 
   void checkIsDeviceConnected() {
-    BluetoothDevice? currentDeviceSearch = connectedDeviceCubit.state.firstWhereOrNull(
+    BluetoothDevice? currentDeviceSearch = connectedDeviceCubit.state.connectedDeviceList.firstWhereOrNull(
       (element) => element.remoteId.str == widget.macAddress
     );
     setState(() {

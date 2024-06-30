@@ -4,8 +4,10 @@ import 'dart:io';
 import 'package:cherry_toast/cherry_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:xiaomi_thermometer_ble/bloc/connected_device_cubit.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
 import 'package:xiaomi_thermometer_ble/pages/widgets/home_page_thermometer_detail.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
@@ -24,13 +26,17 @@ class _HomePageState extends State<HomePage> {
   String selectedFilterCategory = 'All Devices';
 
   AddedDeviceService addedDeviceService = AddedDeviceService();
+  late ConnectedDeviceCubit connectedDeviceCubit;
 
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
 
   @override
   void initState() {
     super.initState();
+    connectedDeviceCubit = context.read<ConnectedDeviceCubit>();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await connectedDeviceCubit.initialize();
       await checkBluetoothSupported();
       if(isBluetoothSupported) checkBluetoothState();
     });
@@ -281,9 +287,9 @@ class _HomePageState extends State<HomePage> {
               title: 'All Devices',
               isSelected: selectedFilterCategory == 'All Devices'
             ),
-            _buildFilterSensorCategoryListItem(
-              title: 'All Devices',
-            )
+            // _buildFilterSensorCategoryListItem(
+            //   title: 'All Devices',
+            // )
           ],
         ),
       ),

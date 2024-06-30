@@ -4,60 +4,67 @@ import 'dart:typed_data';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:xiaomi_thermometer_ble/models/added_device_data/added_device_data.dart';
+import 'package:xiaomi_thermometer_ble/models/connect_device_state.dart';
 import 'package:xiaomi_thermometer_ble/models/xiaomi_sensor_data/xiaomi_sensor_data.dart';
 import 'package:xiaomi_thermometer_ble/services/added_device_service.dart';
 import 'package:collection/collection.dart';
 import 'package:xiaomi_thermometer_ble/services/sensor_data_service.dart';
 
-class ConnectedDeviceCubit extends Cubit<List<BluetoothDevice>> {
-  ConnectedDeviceCubit() : super([]);
+class ConnectedDeviceCubit extends Cubit<ConnectDeviceState> {
+  ConnectedDeviceCubit() : super(ConnectDeviceState());
 
   AddedDeviceService addedDeviceService = AddedDeviceService();
   List<AddedDeviceData> addedDeviceData = [];
 
   SensorDataService sensorDataService = SensorDataService();
 
-  bool isBluetoothSupported = false;
-  bool isBluetoothEnabled = false;
-  bool isBluetoothScanning = false;
-
   Timer? checkSensorDataTimer;
   StreamSubscription<BluetoothAdapterState>? bluetoothStateSubscription;
   StreamSubscription<List<ScanResult>>? scanResultSubscription;
   StreamSubscription<BluetoothConnectionState>? bluetoothConnectedDeviceState;
 
+  // @override
+  // void onChange(Change<ConnectDeviceState> change){
+  //   super.onChange(change);
+  //   print('checkBluetoothSupported state test ${state.isBluetoothSupported}');
+  // }
+
   Future<void> initialize() async {
     addedDeviceData = await addedDeviceService.getAllAddedDeviceData();
 
     await checkBluetoothSupported();
-    if(isBluetoothSupported) checkBluetoothState();
-    if(isBluetoothEnabled && isBluetoothEnabled) await scanForDevice();
+    if(state.isBluetoothSupported) await checkBluetoothState();
   }
 
   Future<void> checkBluetoothSupported() async {
     if(await FlutterBluePlus.isSupported == false){
-      isBluetoothSupported = false;
+      state.isBluetoothSupported = false;
     }else{
-      isBluetoothSupported = true;
+      state.isBluetoothSupported = true;
     }
+    emit(state);
+    print('checkBluetoothSupported state ${state.isBluetoothSupported}');
   }
 
-  void checkBluetoothState() {
-    bluetoothStateSubscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState bluetoothState) {
+  Future<void> checkBluetoothState() async {
+    bluetoothStateSubscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState bluetoothState) async {
       if(bluetoothState == BluetoothAdapterState.on){
-        isBluetoothEnabled = true;
+        state.isBluetoothEnabled = true;
+        if(state.isBluetoothEnabled && state.isBluetoothSupported) await scanForDevice();
       }else{
-        isBluetoothEnabled = false;
+        state.isBluetoothEnabled = false;
       }
+
+      emit(state);
     });
   }
 
   Future<void> scanForDevice() async {
     await FlutterBluePlus.startScan(
-        timeout: const Duration(minutes: 1)
+      timeout: const Duration(minutes: 1)
     );
-    isBluetoothScanning = true;
-
+    state.isBluetoothScanning = true;
+    emit(state);
 
     scanResultSubscription = FlutterBluePlus.onScanResults.listen((List<ScanResult> result) {
       addedDeviceData.forEach((addedDeviceData) async {
@@ -129,7 +136,6 @@ class ConnectedDeviceCubit extends Cubit<List<BluetoothDevice>> {
         macAddress: deviceRemoteID,
       );
 
-
       await sensorDataService.addNewSensorData(result);
     }catch(e) {
       print(e);
@@ -137,13 +143,16 @@ class ConnectedDeviceCubit extends Cubit<List<BluetoothDevice>> {
   }
 
   void addConnectedDevice(BluetoothDevice device) {
-    state.add(device);
-    print('Device added to cubit: ${state.length}');
+    if(!state.connectedDeviceList.contains(device)){
+      state.connectedDeviceList.add(device);
+      print('New device added');
+    }
     emit(state);
+    print('Device added to cubit: ${state.connectedDeviceList.length}');
   }
 
   void removeConnectedDevice(BluetoothDevice device){
-    state.remove(device);
+    state.connectedDeviceList.remove(device);
     emit(state);
   }
 }
